@@ -1,0 +1,55 @@
+<html>
+	<head>
+		<title>Concept Mapper Download</title>
+		<style type="text/css">
+			body {
+			  background-color: lightgrey;
+			}
+			h2 {
+			  color: #99badd;
+			  font-family: Verdana;
+			  font-size: 150%;
+			}
+			p  {
+			  color: black;
+			  font-family: Arial;
+			  font-size: 100%;
+			}
+		</style>
+		<script>
+			window.onpageshow = function() {
+				populate();
+			}
+			function populate() {
+				document.getElementById("out_path").value = "{{ context.out_directory }}";
+			}
+		</script>
+	</head>
+    <body>
+		<h2>Select location to save comparison</h2>
+		<p>
+			{% with messages = get_flashed_messages() %}
+			{% if messages %}
+			<ul class=flashes>
+				{% for message in messages %}
+				<li>{{ message }}</li>
+				{% endfor %}
+			</ul>
+			{% endif %}
+			{% endwith %}
+		</p>
+		<form method="post" action="/out">
+		    <dl>
+				<p>Enter the directory:&nbsp
+<!--					<a href="{{ url_for('p') }}" download>Download</a>-->
+					<input type="text" id="out_path" name="out_path" autocomplete="off">
+<!--					<input type="file" webkitdirectory directory multiple id="out_path" name="out_path" autocomplete="off"/>-->
+
+				</p>
+			</dl>
+			<p>
+				<input type="submit" value="Save">
+			</p>
+		</form>
+    </body>
+</html>
