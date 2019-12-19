@@ -1,13 +1,12 @@
 import re
-from lxml import etree
+import os
+# import tkinter as tk  # comment out if compiling for online
 from networkx import *
-from tkinter import *
-from tkinter import filedialog
+# from tkinter import *  # comment out if compiling for online
+# from tkinter import filedialog  # comment out if compiling for online
 from xmldiff import main, formatting
 
-# from xml.etree import ElementTree as ET
-
-radio_box = Tk()
+# radio_box = tk.Tk()  # comment out if compiling for online
 
 moved_list = []
 extras_list = []
@@ -26,46 +25,50 @@ same_list = []
 
 
 def run_it():
-    v = IntVar()
-    Radiobutton(radio_box, variable=v, value=0,
-                fg='grey', bg='white', bd=2, padx=20, pady=10, width=45, indicatoron=0,
-                text='CHOOSE A PROCEDURE:').pack(anchor=W)
-    Radiobutton(radio_box, variable=v, value=1,
-                fg='white', bg='grey', bd=2, padx=20, pady=10, width=45, indicatoron=0,
-                command=find_diffs, text='Compare a given network against a master (key)').pack(anchor=W)
-    Radiobutton(radio_box, variable=v, value=2,
-                fg='white', bg='grey', bd=2, padx=20, pady=10, width=45, indicatoron=0,
-                command=analyze_xml, text='Analyze a given network').pack(anchor=W)
-    radio_box.mainloop()
+    # comment out all but last line if compiling for online
+    # v = IntVar()
+    # Radiobutton(radio_box, variable=v, value=0,
+    #             fg='grey', bg='white', bd=2, padx=20, pady=10, width=45, indicatoron=0,
+    #             text='CHOOSE A PROCEDURE:').pack(anchor=W)
+    # Radiobutton(radio_box, variable=v, value=1,
+    #             fg='white', bg='grey', bd=2, padx=20, pady=10, width=45, indicatoron=0,
+    #             command=find_diffs, text='Compare a given network against a master (key)').pack(anchor=W)
+    # Radiobutton(radio_box, variable=v, value=2,
+    #             fg='white', bg='grey', bd=2, padx=20, pady=10, width=45, indicatoron=0,
+    #             command=analyze_xml, text='Analyze a given network').pack(anchor=W)
+    # radio_box.mainloop()
     quit()
 
 
 def find_diffs():
-    file1 = filedialog.askopenfilename(initialdir="/", title="Select file", filetypes=[("MM files", "*.mm")])
-    file2 = filedialog.askopenfilename(initialdir="/", title="Select file", filetypes=[("MM files", "*.mm")])
-    set_in_motion_find_diffs(file1, file2)
-    print_it(set_output_path(file1, file2))
-    print_it2(set_output_path1(file1, file2))
-    radio_box.quit()
+    # comment out all but last line if compiling for online
+    # file1 = filedialog.askopenfilename(initialdir="/", title="Select file", filetypes=[("MM files", "*.mm")])
+    # file2 = filedialog.askopenfilename(initialdir="/", title="Select file", filetypes=[("MM files", "*.mm")])
+    # set_in_motion_find_diffs(file1, file2)
+    # print_it(set_output_path(file1, file2))
+    # print_it2(set_output_path1(file1, file2))
+    # radio_box.quit()
     return
 
 
-def return_diffs(file1, file2):
-    set_in_motion_find_diffs(file1, file2)
+def return_diffs(file1, file1name, file2, file2name):
+# def return_diffs(file1, file2):
+    set_in_motion_find_diffs(file1, file1name, file2, file2name)
     print_it('for_download')
     print_it2('for_download')
     return return_list
 
 
-def set_in_motion_find_diffs(file1, file2):
+def set_in_motion_find_diffs(file1, file1name, file2, file2name):
+# def set_in_motion_find_diffs(file1, file2):
     diff = main.diff_files(file1, file2, formatter=formatting.XMLFormatter())
     for i in diff.splitlines():
         if re.search(r'\bdiff:\w+', i) or i.startswith('</node'):
-            # parentAndChild(i)
-            if not cull_line(i, TRUE):
+            if not cull_line(i, 'TRUE'):
                 categorize_it(i)
-    keyfile(file1)
-    studentfile(file2)
+    keyfile(file1name)
+    # keyfile(file1)
+    studentfile(file2name)
     compare(printlistforkey,printlistforstudent)
     return
 
@@ -78,6 +81,7 @@ def set_output_path(path1, path2):
     else:
         return ''
 
+
 def set_output_path1(path1, path2):
     if path1.lower().find('key') >= 0:
         return path2.replace('.mm', '.link-diff-from-key.txt')
@@ -88,17 +92,18 @@ def set_output_path1(path1, path2):
 
 
 def analyze_xml():
-    path1 = filedialog.askopenfilename(initialdir="/", title="Select file",
-                                       filetypes=[("MM files", "*.mm"), ("XML files", "*.xml")])
-    g = networkx.readwrite.graphml.read_graphml(graphify_it(scrub_it(path1)))
-    r = networkx.degree_assortativity_coefficient(g)
-    print("%3.1f" % r)
-    radio_box.quit()
+    # comment out all but last line if compiling for online
+    # path1 = filedialog.askopenfilename(initialdir="/", title="Select file",
+    #                                    filetypes=[("MM files", "*.mm"), ("XML files", "*.xml")])
+    # g = networkx.readwrite.graphml.read_graphml(graphify_it(scrub_it(path1)))
+    # r = networkx.degree_assortativity_coefficient(g)
+    # print("%3.1f" % r)
+    # radio_box.quit()
     return
 
 
 def cull_line(xml_line, am_finding_diffs):
-    if am_finding_diffs:
+    if am_finding_diffs == 'TRUE':
         rtn = 0
         if has_attr(xml_line, 'FOLDED'):
             return 1
@@ -148,7 +153,7 @@ def find_counterpart(xml_line):
 
 
 def categorize_it(xml_line):
-    new_line = clean_it(xml_line, TRUE)
+    new_line = clean_it(xml_line, 'TRUE')
     if new_line.strip() != '':
         if has_attr(xml_line, 'diff:delete'):
             missing_list.append(new_line)
@@ -164,7 +169,7 @@ def clean_it(xml_line, am_finding_diffs):
     new_line = remove_attr(new_line, 'CREATED')
     new_line = remove_attr(new_line, 'MODIFIED')
     new_line = remove_attr(new_line, 'ID')
-    if not am_finding_diffs:
+    if am_finding_diffs == 'FALSE':
         new_line = remove_attr(new_line, 'FOLDED')
         new_line = remove_attr(new_line, 'STYLE')
         new_line = remove_attr(new_line, 'COLOR')
@@ -175,7 +180,7 @@ def clean_it(xml_line, am_finding_diffs):
     new_line = replace_segment(new_line, 'UPDATES=\"TEXT:', 'UPDATES=\"')
     new_line = remove_segment(new_line, '<diff:insert>')
     new_line = remove_segment(new_line, '</diff:insert>')
-    if am_finding_diffs:
+    if am_finding_diffs == 'TRUE':
         new_line = remove_segment(new_line, '<node')
         new_line = remove_segment(new_line, '</node>')
         new_line = remove_segment(new_line, '/>')
@@ -189,7 +194,7 @@ def clean_it(xml_line, am_finding_diffs):
     new_line = remove_segment(new_line, 'diff:insert')
     new_line = remove_segment(new_line, 'diff:update-attr')
     new_line = remove_attr(new_line, 'version')
-    if am_finding_diffs:
+    if am_finding_diffs == 'TRUE':
         if all_the_same(new_line, 'TEXT', 'UPDATES'):
             return ''
     new_line = ' ' + ' '.join(new_line.split())  # add a space as an indent, remove double spaces
@@ -247,8 +252,8 @@ def scrub_it(path):
                 t = t + s
     else:
         for l in f:
-            if not cull_line(l, FALSE):
-                t = t + clean_it(l, FALSE) + '\n'
+            if not cull_line(l, 'FALSE'):
+                t = t + clean_it(l, 'FALSE') + '\n'
     f.close()
     # write out the new file
     p = path.replace('.xml', '_tmp.xml').replace('.mm', '_tmp.mm')
@@ -358,60 +363,9 @@ def go_back_and_clear(attr):
     return
 
 
-def print_it2(output_path):
-    if output_path == '':
-        print('SAME:' + '\n')
-        print('\n'.join(same_list))
-        print('\n' + 'DIFFERENT:' + '\n')
-        print('\n'.join(difference_list))
-    else:
-        f = open(output_path, 'w')
-        f.write('SAME:' + '\n')
-        f.write('\n'.join(same_list))
-        f.write('\n' + 'DIFFERENT:' + '\n')
-        f.write('\n'.join(difference_list))
-        f.close()
-    return
-
-
-def print_it(output_path):
-    moved_list.sort()
-    deduplicate_it(moved_list)
-    extras_list.sort()
-    deduplicate_it(extras_list)
-    missing_list.sort()
-    deduplicate_it(missing_list)
-    if output_path == '':
-        print('Missing:' + '\n')
-        print('\n'.join(missing_list))
-        print('\n' + 'Extras:' + '\n')
-        print('\n'.join(extras_list))
-        print('\n' + 'Moved:' + '\n')
-        print('\n'.join(moved_list))
-    elif output_path == 'for_download':
-        return_list.append('Missing:')
-        for i in missing_list:
-            return_list.append(i)
-        return_list.append('Extras:')
-        for i in extras_list:
-            return_list.append(i)
-        return_list.append('Moved:')
-        for i in moved_list:
-            return_list.append(i)
-    else:
-        f = open(output_path, 'w')
-        f.write('Missing:' + '\n')
-        f.write('\n'.join(missing_list))
-        f.write('\n' + 'Extras:' + '\n')
-        f.write('\n'.join(extras_list))
-        f.write('\n' + 'Moved:' + '\n')
-        f.write('\n'.join(moved_list))
-        f.close()
-    return
-
-
 def keyfile(file1):
     f = open(file1, 'r')
+    print(os.path.abspath(file1))
     for i in f:
         if i.startswith('<node') and not i.endswith('/>') and not i.endswith('/>\n'):
             if len(parentlist) > 0:
@@ -465,5 +419,63 @@ def compare(printlistforkey, printlistforstudent):
     return
 
 
+def print_it(output_path):
+    moved_list.sort()
+    deduplicate_it(moved_list)
+    extras_list.sort()
+    deduplicate_it(extras_list)
+    missing_list.sort()
+    deduplicate_it(missing_list)
+    if output_path == '':
+        print('Missing:' + '\n')
+        print('\n'.join(missing_list))
+        print('\n' + 'Extras:' + '\n')
+        print('\n'.join(extras_list))
+        print('\n' + 'Moved:' + '\n')
+        print('\n'.join(moved_list))
+    elif output_path == 'for_download':
+        return_list.append('Missing:')
+        for i in missing_list:
+            return_list.append(i)
+        return_list.append('Extras:')
+        for i in extras_list:
+            return_list.append(i)
+        return_list.append('Moved:')
+        for i in moved_list:
+            return_list.append(i)
+    else:
+        f = open(output_path, 'w')
+        f.write('Missing:' + '\n')
+        f.write('\n'.join(missing_list))
+        f.write('\n' + 'Extras:' + '\n')
+        f.write('\n'.join(extras_list))
+        f.write('\n' + 'Moved:' + '\n')
+        f.write('\n'.join(moved_list))
+        f.close()
+    return
 
-run_it()  # uncomment when running standalone
+
+def print_it2(output_path):
+    if output_path == '':
+        print('Same:' + '\n')
+        print('\n'.join(same_list))
+        print('\n' + 'Different:' + '\n')
+        print('\n'.join(difference_list))
+    elif output_path == 'for_download':
+        return_list.append('Same Link:')
+        for i in same_list:
+            return_list.append(i)
+        return_list.append('Different Link:')
+        for i in difference_list:
+            return_list.append(i)
+    else:
+        f = open(output_path, 'w')
+        f.write('Same:' + '\n')
+        f.write('\n'.join(same_list))
+        f.write('\n' + 'Different:' + '\n')
+        f.write('\n'.join(difference_list))
+        f.close()
+    return
+
+
+#run_it()  # comment out if compiling for online
