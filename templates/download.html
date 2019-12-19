@@ -17,12 +17,7 @@
 			}
 		</style>
 		<script>
-			window.onpageshow = function() {
-				populate();
-			}
-			function populate() {
-				document.getElementById("out_path").value = "{{ context.out_directory }}";
-			}
+
 		</script>
 	</head>
     <body>
@@ -38,18 +33,21 @@
 			{% endif %}
 			{% endwith %}
 		</p>
-		<form method="post" action="/out">
-		    <dl>
-				<p>Enter the directory:&nbsp
-<!--					<a href="{{ url_for('p') }}" download>Download</a>-->
-					<input type="text" id="out_path" name="out_path" autocomplete="off">
-<!--					<input type="file" webkitdirectory directory multiple id="out_path" name="out_path" autocomplete="off"/>-->
+<!--		<form method="post" action="/out">-->
+		<form method="post" action="/download_file">
 
+		    <dl>
+				<p>
+<!--					<input type="text" id="out_path" name="out_path" autocomplete="off">-->
+				<p>click Download to download file. click back to upload another file.</p>
+				<a href="/getDownload">download</a>
+				<a href="{{ url_for('upload_form')}}"> back</a>
 				</p>
 			</dl>
-			<p>
-				<input type="submit" value="Save">
-			</p>
+<!--			<p>-->
+<!--				<input type="submit" value="Save">-->
+<!--			</p>-->
 		</form>
     </body>
 </html>
+
