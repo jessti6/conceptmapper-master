@@ -102,6 +102,11 @@ def upload_file():
 
 @app.route("/out")
 def get():
+    with open(file_name, 'w') as f:
+        for i in diffs:
+            f.write(i)
+            f.write('\n')
+        f.close()
     global q_repeated
     q_repeated = True
     return render_template('download.html' )
