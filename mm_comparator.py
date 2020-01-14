@@ -52,22 +52,20 @@ def find_diffs():
 
 
 def return_diffs(file1, file1name, file2, file2name):
-# def return_diffs(file1, file2):
     set_in_motion_find_diffs(file1, file1name, file2, file2name)
-    print_it('for_download')
+
+    print_it('for_download', file2name)
     print_it2('for_download')
     return return_list
 
 
 def set_in_motion_find_diffs(file1, file1name, file2, file2name):
-# def set_in_motion_find_diffs(file1, file2):
     diff = main.diff_files(file1, file2, formatter=formatting.XMLFormatter())
     for i in diff.splitlines():
         if re.search(r'\bdiff:\w+', i) or i.startswith('</node'):
             if not cull_line(i, 'TRUE'):
                 categorize_it(i)
     keyfile(file1name)
-    # keyfile(file1)
     studentfile(file2name)
     compare(printlistforkey,printlistforstudent)
     return
@@ -419,7 +417,8 @@ def compare(printlistforkey, printlistforstudent):
     return
 
 
-def print_it(output_path):
+
+def print_it(output_path, file2):
     moved_list.sort()
     deduplicate_it(moved_list)
     extras_list.sort()
@@ -434,6 +433,8 @@ def print_it(output_path):
         print('\n' + 'Moved:' + '\n')
         print('\n'.join(moved_list))
     elif output_path == 'for_download':
+        return_list.append('\n')
+        return_list.append('student file name: ' + file2 +'\n')
         return_list.append('Missing:')
         for i in missing_list:
             return_list.append(i)
