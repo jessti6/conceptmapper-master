@@ -23,6 +23,7 @@
 			function populate() {
 				document.getElementById("key_file").value = "{{ context.key_file }}";
 			}
+
 		</script>
 	</head>
 	<body>
@@ -53,7 +54,8 @@
 				{% else %}
 				<p>Enter the student file:&nbsp;
 				{% endif %}
-					<input type="file" name="student_file" autocomplete="off" required>
+				<input type="file" id="student" multiple="" name="student_file[]" autocomplete="off" required multiple>
+
 				</p>
 			</dl>
 			<p>
