@@ -26,9 +26,6 @@ printlistforstudent = []
 difference_list = []
 same_list = []
 
-# key_misspelled_list = []
-# student_misspelled_list = []
-# mis_list = []
 
 # cross = []
 printlist_keycrosslink = []
@@ -382,27 +379,6 @@ def go_back_and_clear(attr):
             missing_list.remove(i)
             return
     return
-
-# def misspelled(file1,file2):
-#     f1 = open(file1,'r')
-#     f2 = open(file2, 'r')
-#     for i in f1:
-#         if i.startswith('<node'):
-#             key_misspelled_list.append(get_attr_val(i,'TEXT'))
-#             sorted(key_misspelled_list)
-#     for i in f2:
-#         if i.startswith('<node'):
-#             student_misspelled_list.append(get_attr_val(i,'TEXT'))
-#             sorted(student_misspelled_list)
-#     for i in key_misspelled_list:
-#         for j in student_misspelled_list:
-#             ratio = SequenceMatcher(None, i, j)
-#             if (ratio > 0.5):
-#                 j.append(mis_list)
-#                 test = mis_list
-#     # print(Counter(key_misspelled_list) == Counter(student_misspelled_list))
-#     return
-
 
 
 def keyfile(file1):
