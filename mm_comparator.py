@@ -1,6 +1,9 @@
 import re
 import os
 # import tkinter as tk  # comment out if compiling for online
+from collections import Counter, defaultdict
+from difflib import SequenceMatcher
+
 from networkx import *
 # from tkinter import *  # comment out if compiling for online
 # from tkinter import filedialog  # comment out if compiling for online
@@ -22,6 +25,17 @@ printlistforkey = []
 printlistforstudent = []
 difference_list = []
 same_list = []
+
+# key_misspelled_list = []
+# student_misspelled_list = []
+# mis_list = []
+
+# cross = []
+printlist_keycrosslink = []
+printlist_studentcrosslink = []
+same_list_cross =[]
+difference_list_cross = []
+
 
 
 def run_it():
@@ -68,6 +82,12 @@ def set_in_motion_find_diffs(file1, file1name, file2, file2name):
     keyfile(file1name)
     studentfile(file2name)
     compare(printlistforkey,printlistforstudent)
+    key_crosslink(file1name)
+    student_crosslink(file2name)
+    compare_cross_link(printlist_keycrosslink,printlist_studentcrosslink)
+
+    # misspelled(file1name,file2name)
+    # crosslink()
     return
 
 
@@ -166,7 +186,7 @@ def clean_it(xml_line, am_finding_diffs):
     new_line = xml_line
     new_line = remove_attr(new_line, 'CREATED')
     new_line = remove_attr(new_line, 'MODIFIED')
-    new_line = remove_attr(new_line, 'ID')
+    # new_line = remove_attr(new_line, 'ID')
     if am_finding_diffs == 'FALSE':
         new_line = remove_attr(new_line, 'FOLDED')
         new_line = remove_attr(new_line, 'STYLE')
@@ -305,7 +325,10 @@ def get_attr(xml_line, attr):
     if tmp.find(';', q1 + 1) < 0:  # delimited by semicolon or quote
         q2 = tmp.find('"', q1 + 1)
     else:
-        q2 = tmp.find(';', q1 + 1) + 1
+        if tmp.find('" ', q1 + 1) < tmp.find(';', q1+1):
+            q2 = tmp.find('" ', q1 + 1)
+        else:
+            q2 = tmp.find(';', q1 + 1) + 1
     return tmp[q1: q2]
 
 
@@ -359,6 +382,27 @@ def go_back_and_clear(attr):
             missing_list.remove(i)
             return
     return
+
+# def misspelled(file1,file2):
+#     f1 = open(file1,'r')
+#     f2 = open(file2, 'r')
+#     for i in f1:
+#         if i.startswith('<node'):
+#             key_misspelled_list.append(get_attr_val(i,'TEXT'))
+#             sorted(key_misspelled_list)
+#     for i in f2:
+#         if i.startswith('<node'):
+#             student_misspelled_list.append(get_attr_val(i,'TEXT'))
+#             sorted(student_misspelled_list)
+#     for i in key_misspelled_list:
+#         for j in student_misspelled_list:
+#             ratio = SequenceMatcher(None, i, j)
+#             if (ratio > 0.5):
+#                 j.append(mis_list)
+#                 test = mis_list
+#     # print(Counter(key_misspelled_list) == Counter(student_misspelled_list))
+#     return
+
 
 
 def keyfile(file1):
@@ -417,6 +461,84 @@ def compare(printlistforkey, printlistforstudent):
     return
 
 
+def key_crosslink(file1):
+    child_list = []
+    id_list = []
+    id_list_parent = []
+    getnode = []
+    d = defaultdict(int)
+
+    f = open(file1, 'r')
+    prev = next(f).strip()
+    for i in map(str.strip,f):
+        if i.startswith('<node'):
+            getnode.append(i)
+        if i.startswith('<node') and not i.endswith('/>') and not i.endswith('/>\n'):
+            d[prev, i] += 1
+            prev = i
+            # j = i[i+1]
+            # j = next(i) #go to next line
+        if i.startswith('<arrowlink'):
+            id_list.append(get_attr_val(i,'DESTINATION')) #find the destination ID
+            child_list.append(get_attr_val(prev, 'TEXT'))
+                    # test = k.__getattribute__('ID')
+                    # getid.append(test)
+    for x in id_list:
+        for id in getnode:
+                    # one = (get_attr_val(x,'DESTINATION'))
+            two  = (get_attr_val(id, 'ID'))
+            if x == two:
+                id_list_parent.append(get_attr_val(id,'TEXT')) #
+                printsentence = 'parent node: ' + id_list_parent[-1] + ' child node: ' + child_list[0]
+                printlist_keycrosslink.append(printsentence)
+                del child_list[0]
+    # print(printlist_keycrosslink)
+    f.close()
+    return
+
+def student_crosslink(file2):
+    child_list = []
+    id_list = []
+    id_list_parent = []
+    getnode = []
+    d = defaultdict(int)
+
+    f = open(file2, 'r')
+    prev = next(f).strip()
+    for i in map(str.strip, f):
+        if i.startswith('<node'):
+            getnode.append(i)
+        if i.startswith('<node') and not i.endswith('/>') and not i.endswith('/>\n'):
+            d[prev, i] += 1
+            prev = i
+        if i.startswith('<arrowlink'):
+            id_list.append(get_attr_val(i, 'DESTINATION'))  # find the destination ID
+            child_list.append(get_attr_val(prev, 'TEXT'))
+    for x in id_list:
+        for id in getnode:
+            two = (get_attr_val(id, 'ID'))
+            if x == two:
+                id_list_parent.append(get_attr_val(id, 'TEXT'))  #
+                printsentence = 'parent node: ' + id_list_parent[-1] + ' child node: ' + child_list[0]
+                printlist_studentcrosslink.append(printsentence)
+                del child_list[0]
+    f.close()
+    return
+
+def compare_cross_link(printlist_keycrosslink, printlist_studentcrosslink):
+    key = sorted(printlist_keycrosslink)
+    student = sorted(printlist_studentcrosslink)
+
+    for i in key:
+        for j in student:
+            if i == j:
+                same_list_cross.append(i)
+                break
+    for z in (key + student):
+        if z not in same_list_cross:
+            difference_list_cross.append(z)
+    return
+
 
 def print_it(output_path, file2):
     moved_list.sort()
@@ -435,13 +557,13 @@ def print_it(output_path, file2):
     elif output_path == 'for_download':
         return_list.append('\n')
         return_list.append('student file name: ' + file2 +'\n')
-        return_list.append('Missing:')
+        return_list.append('Missing Nodes: ' + '(Count:' + str(len(missing_list)) + ')')
         for i in missing_list:
             return_list.append(i)
-        return_list.append('Extras:')
+        return_list.append('Extras Nodes: ' + '(Count:' + str(len(extras_list)) + ')')
         for i in extras_list:
             return_list.append(i)
-        return_list.append('Moved:')
+        return_list.append('Moved Nodes: ' + '(Count:' + str(len(moved_list)) + ')')
         for i in moved_list:
             return_list.append(i)
     else:
@@ -463,12 +585,19 @@ def print_it2(output_path):
         print('\n' + 'Different:' + '\n')
         print('\n'.join(difference_list))
     elif output_path == 'for_download':
-        return_list.append('Same Link:')
+        return_list.append('Same Link: ' + '(Count:' + str(len(same_list)) + ')')
         for i in same_list:
             return_list.append(i)
-        return_list.append('Different Link:')
+        return_list.append('Different Link: ' + '(Count:' + str(len(difference_list)) + ')')
         for i in difference_list:
             return_list.append(i)
+        return_list.append('Same Cross Link: ' + '(Count:' + str(len(same_list_cross)) + ')')
+        for i in same_list_cross:
+            return_list.append(i)
+        return_list.append('Different Cross Link: ' + '(Count:' + str(len(difference_list_cross)) + ')')
+        for i in difference_list_cross:
+            return_list.append(i)
+
     else:
         f = open(output_path, 'w')
         f.write('Same:' + '\n')
