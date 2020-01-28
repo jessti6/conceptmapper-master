@@ -183,7 +183,7 @@ def clean_it(xml_line, am_finding_diffs):
     new_line = xml_line
     new_line = remove_attr(new_line, 'CREATED')
     new_line = remove_attr(new_line, 'MODIFIED')
-    # new_line = remove_attr(new_line, 'ID')
+    new_line = remove_attr(new_line, 'ID')
     if am_finding_diffs == 'FALSE':
         new_line = remove_attr(new_line, 'FOLDED')
         new_line = remove_attr(new_line, 'STYLE')
