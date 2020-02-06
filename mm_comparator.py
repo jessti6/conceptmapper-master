@@ -3,7 +3,9 @@ import os
 # import tkinter as tk  # comment out if compiling for online
 from collections import Counter, defaultdict
 from difflib import SequenceMatcher
+from io import StringIO
 
+from lxml import etree
 from networkx import *
 # from tkinter import *  # comment out if compiling for online
 # from tkinter import filedialog  # comment out if compiling for online
@@ -71,7 +73,7 @@ def return_diffs(file1, file1name, file2, file2name):
 
 
 def set_in_motion_find_diffs(file1, file1name, file2, file2name):
-    diff = main.diff_files(file1, file2, formatter=formatting.XMLFormatter())
+    diff = main.diff_files(file1name, file2name, formatter=formatting.XMLFormatter())
     for i in diff.splitlines():
         if re.search(r'\bdiff:\w+', i) or i.startswith('</node'):
             if not cull_line(i, 'TRUE'):
@@ -383,7 +385,9 @@ def go_back_and_clear(attr):
 
 def keyfile(file1):
     f = open(file1, 'r')
-    print(os.path.abspath(file1))
+    # print(os.path.abspath(file1))
+    # f = etree.parse(StringIO(f))
+
     for i in f:
         if i.startswith('<node') and not i.endswith('/>') and not i.endswith('/>\n'):
             if len(parentlist) > 0:

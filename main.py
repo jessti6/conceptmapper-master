@@ -1,6 +1,8 @@
 import os
 
+# from django.core.files import File
 from flask import flash, request, redirect, render_template, make_response, send_from_directory
+# from pip._vendor import requests
 from werkzeug.utils import secure_filename
 
 import mm_comparator
@@ -10,12 +12,11 @@ from lib.flask import Response
 Extensions = 'mm'
 Allowed_extensions = set([Extensions])
 
-# app.config['UPLOAD_FOLDER'] = 'uploads/'  #
 
 
 diffs = ''
 file_name = ''
-out_directory = os.path.expanduser('~').replace('\\', '\\\\')
+# out_directory = os.path.expanduser('~').replace('\\', '\\\\')
 
 key_file_sav = {''}
 key_file_name_sav = ''
@@ -54,35 +55,30 @@ def upload_file():
     if request.method == 'POST':
         global key_file_sav, key_file_name_sav, student_file_name_sav
         key_file = request.files['key_file']
+        key_file.save(os.path.join(app.config['UPLOAD_FOLDER'], key_file.filename))
         student_file = request.files.getlist("student_file[]")
         for i in student_file:
-        # test = len(student_file)
-        # filenames = []
-        # for file in student_file:
-        #     if file and allowed_file(file.filename):
-        #         filename = secure_filename(file.filename)
-        #         file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-        #         filenames.append(filename)
+            i.save(os.path.join(app.config['UPLOAD_FOLDER'], i.filename))
+
+        for i in student_file:
             if check_inputs(key_file, i) != '':
                 flash(check_inputs(key_file, i))
                 return redirect(request.url)
+
         # good to go, run the comparison
         global diffs, file_name
         if key_file.filename != key_file_name_sav and key_file.filename == '':
             key_file = key_file_sav
-            # open(key_file, 'r')
-            # key_file_name_sav = key_file.filename
+
         else:
             key_file_sav = key_file
             key_file_name_sav = key_file.filename
 
-        # if student_file.filename != student_file_name_sav and student_file.filename != '':
         for i in student_file:
             student_file_name_sav = i.filename
             diffs = mm_comparator.return_diffs(key_file, key_file_name_sav, i, student_file_name_sav)
             file_name = mm_comparator.set_output_path(key_file_name_sav, i.filename)
-            # diffs = mm_comparator.return_diffs(key_file_sav, key_file_name_sav, student_file, student_file_name_sav)
-            # file_name = mm_comparator.set_output_path(key_file_name_sav, student_file.filename)
+
         return redirect('/out')
 
 
@@ -117,5 +113,6 @@ def getDownload():
 
 if __name__ == "__main__":
     app.debug = True
-    # app.run(host='0.0.0.0', port=8080)
-    app.run()
+    app.run(host='0.0.0.0', port=8080)
+
+    # app.run()
