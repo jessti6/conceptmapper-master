@@ -92,16 +92,28 @@ def get():
 
 @app.route("/getDownload")
 def getDownload():
-    # f = open(file_name, 'w')
+    #
+    # empty = os.stat(file_name).st_size == 0
+    # if empty:
     with open(file_name, 'w') as f:
-        for i in diffs:
-            f.write(i)
-            f.write('\n')
-        # f.close()
+        empty = os.stat(file_name).st_size == 0
+        if empty:
+            for i in diffs:
+                f.write(i)
+                f.write('\n')
+            f.close()
+        else:
+            file_name.seek(0)
+            file_name.truncate()
+            with open(file_name, 'w') as f:
+                for i in diffs:
+                    f.write(i)
+                    f.write('\n')
+            f.close()
 
     with open(file_name, 'r') as f1:
         diff = f1.read()
-
+        f1.close()
     return Response(
         diff,
         mimetype="text",
@@ -113,6 +125,5 @@ def getDownload():
 
 if __name__ == "__main__":
     app.debug = True
-    app.run(host='0.0.0.0', port=8080)
-
-    # app.run()
+    # app.run(host='0.0.0.0', port=8080)
+    app.run()
