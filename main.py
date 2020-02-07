@@ -69,7 +69,6 @@ def upload_file():
         global diffs, file_name
         if key_file.filename != key_file_name_sav and key_file.filename == '':
             key_file = key_file_sav
-
         else:
             key_file_sav = key_file
             key_file_name_sav = key_file.filename
@@ -92,16 +91,16 @@ def get():
 
 @app.route("/getDownload")
 def getDownload():
-    #
-    # empty = os.stat(file_name).st_size == 0
-    # if empty:
+    global diffs
     with open(file_name, 'w') as f:
         empty = os.stat(file_name).st_size == 0
         if empty:
+            print(diffs)
             for i in diffs:
                 f.write(i)
                 f.write('\n')
             f.close()
+            del diffs
         else:
             file_name.seek(0)
             file_name.truncate()
@@ -110,6 +109,7 @@ def getDownload():
                     f.write(i)
                     f.write('\n')
             f.close()
+
 
     with open(file_name, 'r') as f1:
         diff = f1.read()
@@ -125,5 +125,5 @@ def getDownload():
 
 if __name__ == "__main__":
     app.debug = True
-    # app.run(host='0.0.0.0', port=8080)
-    app.run()
+    app.run(host='0.0.0.0', port=8080)
+    #app.run()

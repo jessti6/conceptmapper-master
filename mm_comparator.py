@@ -66,7 +66,6 @@ def find_diffs():
 
 def return_diffs(file1, file1name, file2, file2name):
     set_in_motion_find_diffs(file1, file1name, file2, file2name)
-
     print_it('for_download', file2name)
     print_it2('for_download')
     return return_list
@@ -74,10 +73,13 @@ def return_diffs(file1, file1name, file2, file2name):
 
 def set_in_motion_find_diffs(file1, file1name, file2, file2name):
     diff = main.diff_files(file1name, file2name, formatter=formatting.XMLFormatter())
+    # diffs = diff.split(file2name,1)[-1]
+
     for i in diff.splitlines():
         if re.search(r'\bdiff:\w+', i) or i.startswith('</node'):
             if not cull_line(i, 'TRUE'):
                 categorize_it(i)
+
     keyfile(file1name)
     studentfile(file2name)
     compare(printlistforkey,printlistforstudent)
@@ -85,8 +87,6 @@ def set_in_motion_find_diffs(file1, file1name, file2, file2name):
     student_crosslink(file2name)
     compare_cross_link(printlist_keycrosslink,printlist_studentcrosslink)
 
-    # misspelled(file1name,file2name)
-    # crosslink()
     return
 
 
@@ -565,17 +565,21 @@ def print_it2(output_path):
         print('\n' + 'Different:' + '\n')
         print('\n'.join(difference_list))
     elif output_path == 'for_download':
-        return_list.append('Same Link: ' + '(Count:' + str(len(same_list)) + ')')
-        for i in same_list:
+        x = set(same_list)
+        return_list.append('Same Link: ' + '(Count:' + str(len(x)) + ')')
+        for i in x:
             return_list.append(i)
-        return_list.append('Different Link: ' + '(Count:' + str(len(difference_list)) + ')')
-        for i in difference_list:
+        x = set(difference_list)
+        return_list.append('Different Link: ' + '(Count:' + str(len(x)) + ')')
+        for i in x:
             return_list.append(i)
-        return_list.append('Same Cross Link: ' + '(Count:' + str(len(same_list_cross)) + ')')
-        for i in same_list_cross:
+        x = set(same_list_cross)
+        return_list.append('Same Cross Link: ' + '(Count:' + str(len(x)) + ')')
+        for i in x:
             return_list.append(i)
-        return_list.append('Different Cross Link: ' + '(Count:' + str(len(difference_list_cross)) + ')')
-        for i in difference_list_cross:
+        x = set(difference_list_cross)
+        return_list.append('Different Cross Link: ' + '(Count:' + str(len(x)) + ')')
+        for i in x:
             return_list.append(i)
 
     else:
