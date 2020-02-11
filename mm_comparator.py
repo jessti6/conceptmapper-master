@@ -65,7 +65,6 @@ def find_diffs():
 
 def return_diffs(file1, file1name, file2, file2name):
     global return_list
-    # return_list = []
     clear_array()
     set_in_motion_find_diffs(file1, file1name, file2, file2name)
     print_it('for_download', file2name)
@@ -74,12 +73,11 @@ def return_diffs(file1, file1name, file2, file2name):
 
 
 def clear_array():
-    global return_list, same_list, same_list_cross, difference_list, difference_list_cross, moved_list, extras_list, missing_list, saved_list, parentlist,childlist,printlistforstudent,printlistforkey,printlist_keycrosslink, printlist_studentcrosslink
+    global same_list, same_list_cross, difference_list, difference_list_cross, moved_list, extras_list, missing_list, saved_list, parentlist,childlist,printlistforstudent,printlistforkey,printlist_keycrosslink, printlist_studentcrosslink
     moved_list = []
     extras_list = []
     missing_list = []
     saved_list = []
-    # return_list = []
     parentlist = []
     childlist = []
     printlistforkey = []
@@ -425,9 +423,6 @@ def go_back_and_clear(attr):
 
 def keyfile(file1):
     f = open(file1, 'r')
-    # print(os.path.abspath(file1))
-    # f = etree.parse(StringIO(f))
-
     for i in f:
         if i.startswith('<node') and not i.endswith('/>') and not i.endswith('/>\n'):
             if len(parentlist) > 0:

@@ -77,14 +77,7 @@ def upload_file():
             # student_file_name_sav = i.filename
             # diffs = ''
             diffs = mm_comparator.return_diffs(key_file, key_file.filename, i, i.filename)
-            # temp_print(diffs)
-            # diffs = ''
-            # temp_print(diffs)
-            # diffs = mm_comparator.return_diffs('',key_file.filename, '', i.filename)
-            # temp_print(diffs)
-            # file_name = mm_comparator.set_output_path(key_file_name_sav, i.filename)
             file_name = mm_comparator.set_output_path(key_file.filename,i.filename)
-
         return redirect('/out')
 
 
@@ -97,20 +90,13 @@ def get():
     return render_template('download.html')
 
 
-# def temp_print(x):
-#     y = 0
-#     for i in x:
-#         y = y + 1
-
-
-
 @app.route("/getDownload")
 def getDownload():
     global diffs
     with open(file_name, 'w') as f:
         empty = os.stat(file_name).st_size == 0
         if empty:
-            print(diffs)
+            # print(diffs)
             for i in diffs:
                 f.write(i)
                 f.write('\n')
