@@ -29,7 +29,6 @@ difference_list = []
 same_list = []
 
 
-# cross = []
 printlist_keycrosslink = []
 printlist_studentcrosslink = []
 same_list_cross =[]
@@ -65,15 +64,56 @@ def find_diffs():
 
 
 def return_diffs(file1, file1name, file2, file2name):
+    global return_list
+    # return_list = []
+    clear_array()
     set_in_motion_find_diffs(file1, file1name, file2, file2name)
     print_it('for_download', file2name)
     print_it2('for_download')
     return return_list
 
 
+def clear_array():
+    global return_list, same_list, same_list_cross, difference_list, difference_list_cross, moved_list, extras_list, missing_list, saved_list, parentlist,childlist,printlistforstudent,printlistforkey,printlist_keycrosslink, printlist_studentcrosslink
+    moved_list = []
+    extras_list = []
+    missing_list = []
+    saved_list = []
+    # return_list = []
+    parentlist = []
+    childlist = []
+    printlistforkey = []
+    printlistforstudent = []
+    difference_list = []
+    same_list = []
+    printlist_keycrosslink = []
+    printlist_studentcrosslink = []
+    same_list_cross = []
+    difference_list_cross = []
+
+
+def clear2():
+    global return_list, same_list, same_list_cross, difference_list, difference_list_cross, moved_list, extras_list, missing_list, saved_list, parentlist, childlist, printlistforstudent, printlistforkey, printlist_keycrosslink, printlist_studentcrosslink
+    moved_list = []
+    extras_list = []
+    missing_list = []
+    saved_list = []
+    return_list = []
+    parentlist = []
+    childlist = []
+    printlistforkey = []
+    printlistforstudent = []
+    difference_list = []
+    same_list = []
+    printlist_keycrosslink = []
+    printlist_studentcrosslink = []
+    same_list_cross = []
+    difference_list_cross = []
+
+
 def set_in_motion_find_diffs(file1, file1name, file2, file2name):
+    diff = ''
     diff = main.diff_files(file1name, file2name, formatter=formatting.XMLFormatter())
-    # diffs = diff.split(file2name,1)[-1]
 
     for i in diff.splitlines():
         if re.search(r'\bdiff:\w+', i) or i.startswith('</node'):
@@ -521,6 +561,7 @@ def compare_cross_link(printlist_keycrosslink, printlist_studentcrosslink):
 
 
 def print_it(output_path, file2):
+    global return_list
     moved_list.sort()
     deduplicate_it(moved_list)
     extras_list.sort()
@@ -559,27 +600,28 @@ def print_it(output_path, file2):
 
 
 def print_it2(output_path):
+    global return_list
     if output_path == '':
         print('Same:' + '\n')
         print('\n'.join(same_list))
         print('\n' + 'Different:' + '\n')
         print('\n'.join(difference_list))
     elif output_path == 'for_download':
-        x = set(same_list)
-        return_list.append('Same Link: ' + '(Count:' + str(len(x)) + ')')
-        for i in x:
+        # x = set(same_list)
+        return_list.append('Same Link: ' + '(Count:' + str(len(same_list)) + ')')
+        for i in same_list:
             return_list.append(i)
-        x = set(difference_list)
-        return_list.append('Different Link: ' + '(Count:' + str(len(x)) + ')')
-        for i in x:
+        # x = set(difference_list)
+        return_list.append('Different Link: ' + '(Count:' + str(len(difference_list)) + ')')
+        for i in difference_list:
             return_list.append(i)
-        x = set(same_list_cross)
-        return_list.append('Same Cross Link: ' + '(Count:' + str(len(x)) + ')')
-        for i in x:
+        # x = set(same_list_cross)
+        return_list.append('Same Cross Link: ' + '(Count:' + str(len(same_list_cross)) + ')')
+        for i in same_list_cross:
             return_list.append(i)
-        x = set(difference_list_cross)
-        return_list.append('Different Cross Link: ' + '(Count:' + str(len(x)) + ')')
-        for i in x:
+        # x = set(difference_list_cross)
+        return_list.append('Different Cross Link: ' + '(Count:' + str(len(difference_list_cross)) + ')')
+        for i in difference_list_cross:
             return_list.append(i)
 
     else:

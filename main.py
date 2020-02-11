@@ -14,7 +14,7 @@ Allowed_extensions = set([Extensions])
 
 
 
-diffs = ''
+diffs = ""
 file_name = ''
 # out_directory = os.path.expanduser('~').replace('\\', '\\\\')
 
@@ -67,16 +67,23 @@ def upload_file():
 
         # good to go, run the comparison
         global diffs, file_name
-        if key_file.filename != key_file_name_sav and key_file.filename == '':
-            key_file = key_file_sav
-        else:
-            key_file_sav = key_file
-            key_file_name_sav = key_file.filename
+        # if key_file.filename != key_file_name_sav and key_file.filename == '':
+        #     key_file = key_file_sav
+        # else:
+        #     key_file_sav = key_file
+        #     key_file_name_sav = key_file.filename
 
         for i in student_file:
-            student_file_name_sav = i.filename
-            diffs = mm_comparator.return_diffs(key_file, key_file_name_sav, i, student_file_name_sav)
-            file_name = mm_comparator.set_output_path(key_file_name_sav, i.filename)
+            # student_file_name_sav = i.filename
+            # diffs = ''
+            diffs = mm_comparator.return_diffs(key_file, key_file.filename, i, i.filename)
+            # temp_print(diffs)
+            # diffs = ''
+            # temp_print(diffs)
+            # diffs = mm_comparator.return_diffs('',key_file.filename, '', i.filename)
+            # temp_print(diffs)
+            # file_name = mm_comparator.set_output_path(key_file_name_sav, i.filename)
+            file_name = mm_comparator.set_output_path(key_file.filename,i.filename)
 
         return redirect('/out')
 
@@ -84,9 +91,17 @@ def upload_file():
 
 @app.route("/out")
 def get():
-    global q_repeated
-    q_repeated = True
+    # global q_repeated
+    # q_repeated = True
+    mm_comparator.clear2()
     return render_template('download.html')
+
+
+# def temp_print(x):
+#     y = 0
+#     for i in x:
+#         y = y + 1
+
 
 
 @app.route("/getDownload")
@@ -109,7 +124,7 @@ def getDownload():
                     f.write(i)
                     f.write('\n')
             f.close()
-
+    # f.close()
 
     with open(file_name, 'r') as f1:
         diff = f1.read()
