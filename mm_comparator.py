@@ -20,8 +20,10 @@ missing_list = []
 saved_list = []
 return_list = []
 
-parentlist = []
-childlist = []
+key_parentlist = []
+student_parentlist = []
+key_childlist = []
+student_childlist = []
 
 printlistforkey = []
 printlistforstudent = []
@@ -33,6 +35,10 @@ printlist_keycrosslink = []
 printlist_studentcrosslink = []
 same_list_cross =[]
 difference_list_cross = []
+
+top_key_node = []
+top_student_node = []
+# print_top_node = []
 
 
 
@@ -118,9 +124,11 @@ def set_in_motion_find_diffs(file1, file1name, file2, file2name):
             if not cull_line(i, 'TRUE'):
                 categorize_it(i)
 
-    keyfile(file1name)
-    studentfile(file2name)
+    find_top_node(file1name, file2name)
+    keyfile(file1name,file2name)
+    # studentfile(file2name)
     compare(printlistforkey,printlistforstudent)
+    # find_top_node(file2name)
     key_crosslink(file1name)
     student_crosslink(file2name)
     compare_cross_link(printlist_keycrosslink,printlist_studentcrosslink)
@@ -421,44 +429,66 @@ def go_back_and_clear(attr):
     return
 
 
-def keyfile(file1):
-    f = open(file1, 'r')
-    for i in f:
+def keyfile(file1,file2):
+    f1 = open(file1, 'r')
+    f2 = open(file2, 'r')
+    for i in f1:
         if i.startswith('<node') and not i.endswith('/>') and not i.endswith('/>\n'):
-            if len(parentlist) > 0:
-                childlist.append(get_attr_val(i, 'TEXT'))
-                printsentence = 'the parent node is ' + parentlist[-1] + ' and the child node is ' + childlist[-1]
+            top_key_node.append(get_attr_val(i, 'TEXT'))
+            break
+    for i in f1:
+        if i.startswith('<node') and not i.endswith('/>') and not i.endswith('/>\n'):
+            if len(key_parentlist) > 0:
+                key_childlist.append(get_attr_val(i, 'TEXT'))
+                printsentence = 'the parent node is ' + key_parentlist[-1] + ' and the child node is ' + key_childlist[-1]
                 printlistforkey.append(printsentence)
-            parentlist.append(get_attr_val(i, 'TEXT'))
+            key_parentlist.append(get_attr_val(i, 'TEXT'))
         elif i.startswith('<node') and (i.endswith('/>') or i.endswith('/>\n')):
-            childlist.append(get_attr_val(i, 'TEXT'))
-            printsentence = 'the parent node is ' + parentlist[-1] + ' and the child node is ' + childlist[-1]
+            key_childlist.append(get_attr_val(i, 'TEXT'))
+            printsentence = 'the parent node is ' + key_parentlist[-1] + ' and the child node is ' + key_childlist[-1]
             printlistforkey.append(printsentence)
         elif i == '</node>' or i == '</node>\n':
-            if len(parentlist) > 0:
-                del parentlist[-1]
-    f.close()
-    return
-
-
-def studentfile(file2):
-    f = open(file2, 'r')
-    for i in f:
+            if len(key_parentlist) > 0:
+                del key_parentlist[-1]
+    f1.close()
+    for i in f2:
         if i.startswith('<node') and not i.endswith('/>') and not i.endswith('/>\n'):
-            if len(parentlist) > 0:
-                childlist.append(get_attr_val(i, 'TEXT'))
-                printsentence = 'the parent node is ' + parentlist[-1] + ' and the child node is ' + childlist[-1]
+            if len(student_parentlist) > 0:
+                student_childlist.append(get_attr_val(i, 'TEXT'))
+                printsentence = 'the parent node is ' + student_parentlist[-1] + ' and the child node is ' + student_childlist[-1]
                 printlistforstudent.append(printsentence)
-            parentlist.append(get_attr_val(i, 'TEXT'))
+            student_parentlist.append(get_attr_val(i, 'TEXT'))
+            if student_parentlist[0] != top_key_node[0]:
+                student_parentlist[0] = top_key_node[0]
         elif i.startswith('<node') and (i.endswith('/>') or i.endswith('/>\n')):
-            childlist.append(get_attr_val(i, 'TEXT'))
-            printsentence = 'the parent node is ' + parentlist[-1] + ' and the child node is ' + childlist[-1]
+            student_childlist.append(get_attr_val(i, 'TEXT'))
+            printsentence = 'the parent node is ' + student_parentlist[-1] + ' and the child node is ' + student_childlist[-1]
             printlistforstudent.append(printsentence)
         elif i == '</node>' or i == '</node>\n':
-            if len(parentlist) > 0:
-                del parentlist[-1]
-    f.close()
+            if len(student_parentlist) > 0:
+                del student_parentlist[-1]
+    f2.close()
     return
+
+
+# def studentfile(file2):
+#     f = open(file2, 'r')
+#     for i in f:
+#         if i.startswith('<node') and not i.endswith('/>') and not i.endswith('/>\n'):
+#             if len(student_parentlist) > 0:
+#                 student_childlist.append(get_attr_val(i, 'TEXT'))
+#                 printsentence = 'the parent node is ' + student_parentlist[-1] + ' and the child node is ' + student_childlist[-1]
+#                 printlistforstudent.append(printsentence)
+#             student_parentlist.append(get_attr_val(i, 'TEXT'))
+#         elif i.startswith('<node') and (i.endswith('/>') or i.endswith('/>\n')):
+#             student_childlist.append(get_attr_val(i, 'TEXT'))
+#             printsentence = 'the parent node is ' + student_parentlist[-1] + ' and the child node is ' + student_childlist[-1]
+#             printlistforstudent.append(printsentence)
+#         elif i == '</node>' or i == '</node>\n':
+#             if len(student_parentlist) > 0:
+#                 del student_parentlist[-1]
+#     f.close()
+#     return
 
 
 def compare(printlistforkey, printlistforstudent):
@@ -474,6 +504,24 @@ def compare(printlistforkey, printlistforstudent):
         if z not in same_list:
             difference_list.append(z)
     return
+
+
+def find_top_node(file1,file2):
+    f1 = open(file1, 'r')
+    f2 = open(file2, 'r')
+    for i in f1:
+        if i.startswith('<node') and not i.endswith('/>') and not i.endswith('/>\n'):
+            top_key_node.append(get_attr_val(i,'TEXT'))
+            break
+    for i in f2:
+        if i.startswith('<node') and not i.endswith('/>') and not i.endswith('/>\n'):
+            top_student_node.append(get_attr_val(i,'TEXT'))
+            break
+    if top_key_node[0] != top_student_node[0]:
+        top_student_node[0] = top_key_node[0]
+    # print(top_key_node[0])
+    # print(top_student_node[0])
+
 
 
 def key_crosslink(file1):
@@ -573,6 +621,7 @@ def print_it(output_path, file2):
     elif output_path == 'for_download':
         return_list.append('\n')
         return_list.append('student file name: ' + file2 +'\n')
+        return_list.append('TOP Node is ' + top_key_node[0])
         return_list.append('Missing Nodes: ' + '(Count:' + str(len(missing_list)) + ')')
         for i in missing_list:
             return_list.append(i)
@@ -630,3 +679,6 @@ def print_it2(output_path):
 
 
 #run_it()  # comment out if compiling for online
+
+
+#
