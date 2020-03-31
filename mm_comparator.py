@@ -1,17 +1,12 @@
 import re
-import os
-# import tkinter as tk  # comment out if compiling for online
-from collections import Counter, defaultdict
-from difflib import SequenceMatcher
-from io import StringIO
-
-from lxml import etree
-from networkx import *
-# from tkinter import *  # comment out if compiling for online
-# from tkinter import filedialog  # comment out if compiling for online
+from collections import defaultdict
 from xmldiff import main, formatting
 
-# radio_box = tk.Tk()  # comment out if compiling for online
+# comment out next four lines if compiling for online
+# import tkinter as tk
+# from tkinter import *
+# from tkinter import filedialog
+# radio_box = tk.Tk()
 
 moved_list = []
 extras_list = []
@@ -20,26 +15,23 @@ missing_list = []
 saved_list = []
 return_list = []
 
-key_parentlist = []
-student_parentlist = []
-key_childlist = []
-student_childlist = []
+child_list = []
+parent_list = []
 
-printlistforkey = []
-printlistforstudent = []
-difference_list = []
+key_node = []
+
+print_list_for_key = []
+print_list_for_student = []
+
+print_list_key_crosslink = []
+print_list_student_crosslink = []
+
 same_list = []
-
-
-printlist_keycrosslink = []
-printlist_studentcrosslink = []
-same_list_cross =[]
+same_list_cross = []
+difference_list = []
 difference_list_cross = []
-
-top_key_node = []
-top_student_node = []
-# print_top_node = []
-
+key_file_list = []
+student_file_list = []
 
 
 def run_it():
@@ -63,98 +55,84 @@ def find_diffs():
     # file1 = filedialog.askopenfilename(initialdir="/", title="Select file", filetypes=[("MM files", "*.mm")])
     # file2 = filedialog.askopenfilename(initialdir="/", title="Select file", filetypes=[("MM files", "*.mm")])
     # set_in_motion_find_diffs(file1, file2)
-    # print_it(set_output_path(file1, file2))
-    # print_it2(set_output_path1(file1, file2))
+    # print_for_node('', set_output_path(file1, file2, 'node'))
+    # print_for_link('')  # , set_output_path(file1, file2, 'link'))
     # radio_box.quit()
     return
 
 
-def return_diffs(file1, file1name, file2, file2name):
+def return_diffs(file1, file2):
     global return_list
-    clear_array()
-    set_in_motion_find_diffs(file1, file1name, file2, file2name)
-    print_it('for_download', file2name)
-    print_it2('for_download')
+    clear_arrays()
+    set_in_motion_find_diffs(file1, file2)
+    print_for_node('for_download', file2)
+    print_for_link('for_download')
     return return_list
 
 
-def clear_array():
-    global same_list, same_list_cross, difference_list, difference_list_cross, moved_list, extras_list, missing_list, saved_list, parentlist,childlist,printlistforstudent,printlistforkey,printlist_keycrosslink, printlist_studentcrosslink
+def clear_arrays():
+    global same_list, same_list_cross, difference_list, difference_list_cross, moved_list, \
+        extras_list, missing_list, saved_list, parent_list, child_list, print_list_for_student, \
+        print_list_for_key, print_list_key_crosslink, print_list_student_crosslink, key_node
+
     moved_list = []
     extras_list = []
     missing_list = []
     saved_list = []
-    parentlist = []
-    childlist = []
-    printlistforkey = []
-    printlistforstudent = []
+    parent_list = []
+    child_list = []
+    print_list_for_key = []
+    print_list_for_student = []
+    key_node = []
     difference_list = []
     same_list = []
-    printlist_keycrosslink = []
-    printlist_studentcrosslink = []
+    print_list_key_crosslink = []
+    print_list_student_crosslink = []
     same_list_cross = []
     difference_list_cross = []
+    key_file_list = []
 
 
-def clear2():
-    global return_list, same_list, same_list_cross, difference_list, difference_list_cross, moved_list, extras_list, missing_list, saved_list, parentlist, childlist, printlistforstudent, printlistforkey, printlist_keycrosslink, printlist_studentcrosslink
-    moved_list = []
-    extras_list = []
-    missing_list = []
-    saved_list = []
+def clear_all_vars():
+    global return_list
     return_list = []
-    parentlist = []
-    childlist = []
-    printlistforkey = []
-    printlistforstudent = []
-    difference_list = []
-    same_list = []
-    printlist_keycrosslink = []
-    printlist_studentcrosslink = []
-    same_list_cross = []
-    difference_list_cross = []
+    clear_arrays()
 
 
-def set_in_motion_find_diffs(file1, file1name, file2, file2name):
+def set_in_motion_find_diffs(file1name, file2name):
     diff = ''
     diff = main.diff_files(file1name, file2name, formatter=formatting.XMLFormatter())
 
+
     for i in diff.splitlines():
+        # if i.find('Etiology') > 0:
+        #     x =1
         if re.search(r'\bdiff:\w+', i) or i.startswith('</node'):
             if not cull_line(i, 'TRUE'):
                 categorize_it(i)
-
-    find_top_node(file1name, file2name)
-    keyfile(file1name,file2name)
-    # studentfile(file2name)
-    compare(printlistforkey,printlistforstudent)
-    # find_top_node(file2name)
+    get_all_node_from_keyfile(file1name) #double check the missing and extra list
+    get_all_node_from_studentfile(file2name)
+    key_file(file1name)
+    student_file(file2name)
+    compare(print_list_for_key, print_list_for_student)
     key_crosslink(file1name)
     student_crosslink(file2name)
-    compare_cross_link(printlist_keycrosslink,printlist_studentcrosslink)
+    compare_crosslink(print_list_key_crosslink, print_list_student_crosslink)
 
     return
 
 
-def set_output_path(path1, path2):
+def set_output_path(path1, path2, node_or_link):
     if path1.lower().find('key') >= 0:
-        return path2.replace('.mm', '.node-diff-from-key.txt')
+        return path2.replace('.mm', '.' + node_or_link + '-diff-from-key.txt')
     elif path2.lower().find('key') >= 0:
-        return path1.replace('.mm', '.node-diff-from-key.txt')
+        return path1.replace('.mm', '.' + node_or_link + '-diff-from-key.txt')
     else:
-        return ''
+        # presume first arg points to key
+        return path2.replace('.mm', '.' + node_or_link + '-diff-from-key.txt')
 
 
-def set_output_path1(path1, path2):
-    if path1.lower().find('key') >= 0:
-        return path2.replace('.mm', '.link-diff-from-key.txt')
-    elif path2.lower().find('key') >= 0:
-        return path1.replace('.mm', '.link-diff-from-key.txt')
-    else:
-        return ''
-
-
-def analyze_xml():
+def analyze_xml():  # networkx=None):
     # comment out all but last line if compiling for online
     # path1 = filedialog.askopenfilename(initialdir="/", title="Select file",
     #                                    filetypes=[("MM files", "*.mm"), ("XML files", "*.xml")])
@@ -166,7 +144,7 @@ def analyze_xml():
 
 
 def cull_line(xml_line, am_finding_diffs):
-    if am_finding_diffs == 'TRUE':
+    if is_the_same(am_finding_diffs, 'TRUE'):
         rtn = 0
         if has_attr(xml_line, 'FOLDED'):
             return 1
@@ -174,8 +152,9 @@ def cull_line(xml_line, am_finding_diffs):
             return 1
         if has_attr(xml_line, 'COLOR') or has_attr(xml_line, 'AutomaticEdgeColor'):
             return 1
-        if has_attr(xml_line, 'POSITION'):
-            return 1
+        # try delete position
+        # if has_attr(xml_line, 'POSITION'):
+        #     return 1
         if has_attr(xml_line, 'HGAP_QUANTITY'):
             return 1
         if has_attr(xml_line, 'VSHIFT_QUANTITY'):
@@ -188,8 +167,8 @@ def cull_line(xml_line, am_finding_diffs):
             return 0
         if xml_line.startswith('<node') or xml_line.startswith('</node>'):
             return 0
-        # if xml_line.startswith('<edge') or xml_line == '</edge>':
-        #   return 0
+        # if xml_line.startswith('<edge') or is_the_same(xml_line, '</edge>'):
+        #     return 0
     return rtn
 
 
@@ -217,7 +196,7 @@ def find_counterpart(xml_line):
 
 def categorize_it(xml_line):
     new_line = clean_it(xml_line, 'TRUE')
-    if new_line.strip() != '':
+    if not is_the_same(new_line, ''):
         if has_attr(xml_line, 'diff:delete'):
             missing_list.append(new_line)
         elif has_attr(xml_line, 'diff:insert'):
@@ -232,24 +211,25 @@ def clean_it(xml_line, am_finding_diffs):
     new_line = remove_attr(new_line, 'CREATED')
     new_line = remove_attr(new_line, 'MODIFIED')
     new_line = remove_attr(new_line, 'ID')
-    if am_finding_diffs == 'FALSE':
+    new_line = remove_attr(new_line, 'POSITION')
+    if is_the_same(am_finding_diffs, 'FALSE'):
         new_line = remove_attr(new_line, 'FOLDED')
         new_line = remove_attr(new_line, 'STYLE')
         new_line = remove_attr(new_line, 'COLOR')
         new_line = remove_attr(new_line, 'POSITION')
     new_line = replace_segment(new_line, '=\"\"', '')
-    new_line = remove_segment(new_line, 'diff:add-attr=\"TEXT\"')
+    # new_line = remove_segment(new_line, 'diff:add-attr=\"TEXT\"')
+    new_line = replace_segment(new_line, 'diff:add-attr=\"TEXT\"', 'UPDATES=')
     new_line = replace_segment(new_line, 'diff:update-attr=', 'UPDATES=')
     new_line = replace_segment(new_line, 'UPDATES=\"TEXT:', 'UPDATES=\"')
     new_line = remove_segment(new_line, '<diff:insert>')
     new_line = remove_segment(new_line, '</diff:insert>')
-    if am_finding_diffs == 'TRUE':
+    if is_the_same(am_finding_diffs, 'TRUE'):
         new_line = remove_segment(new_line, '<node')
         new_line = remove_segment(new_line, '</node>')
         new_line = remove_segment(new_line, '/>')
         new_line = remove_segment(new_line, '>')
-        new_line = replace_segment(new_line, '&gt;', '>')
-        new_line = replace_segment(new_line, '&lt;', '<')
+        new_line = un_html_it(new_line)
     else:
         new_line = replace_segment(new_line, '&gt;', '_gt_')
         new_line = replace_segment(new_line, '&lt;', '_lt_')
@@ -257,11 +237,25 @@ def clean_it(xml_line, am_finding_diffs):
     new_line = remove_segment(new_line, 'diff:insert')
     new_line = remove_segment(new_line, 'diff:update-attr')
     new_line = remove_attr(new_line, 'version')
-    if am_finding_diffs == 'TRUE':
+    if is_the_same(am_finding_diffs, 'TRUE'):
         if all_the_same(new_line, 'TEXT', 'UPDATES'):
             return ''
+    if new_line.find('richcontent') != -1:
+        if is_the_same(get_attr(new_line, 'TEXT'), ''):
+            new_line = ''
+    elif new_line.endswith('UPDATES=\"'):
+        new_line = replace_segment(new_line, 'UPDATES=\"', '')
+    new_line = replace_segment(new_line, 'UPDATES=', '')
     new_line = ' ' + ' '.join(new_line.split())  # add a space as an indent, remove double spaces
     return new_line
+
+
+def un_html_it(line):
+    # replace HTML-like substrings
+    s = line
+    s = s.replace('&gt;', '>')
+    s = s.replace('&lt;', '<')
+    return s
 
 
 def scrub_it(path):
@@ -333,12 +327,40 @@ def graphify_it(path):
     t = ''
     for l in f:
         s = l.strip()
+
+        # top and bottom of graph structure
         if s.startswith('<map'):
             s = s.replace('<map', '<graphml>\n<graph')
         if s.endswith('/map>'):
             s = s.replace('/map>', '/graph>\n</graphml>')
+
+        # otherwise it's a node...
+        if s.startswith('<node'):
+
+            a = get_attr_val(s, 'TEXT')
+
+            # no matter what, print out as a self-contained node element
+            _s = s.replace('TEXT', 'ID').replace('>', '/>').replace('//', '/')
+
+            # if a child node, print out edge to parent
+            if len(parent_list) > 0:
+                _s = _s + '\n' + '<edge source=' + parent_list[-1] + ' target=' + a + '/>'
+
+            # if a parent node, prep for its children
+            if not s.endswith('/>') and not s.endswith('/>\n'):
+                parent_list.append(a)
+
+            s = _s
+        else:
+            # ...or an end tag
+            if is_the_same(s, '</node>') or is_the_same(s, '</node>\n'):
+                s = ''
+                if len(parent_list) > 0:
+                    del parent_list[-1]
+
         t = t + s + '\n'
     f.close()
+
     # write out the new file
     p = path
     f = open(p, 'w')
@@ -348,9 +370,14 @@ def graphify_it(path):
 
 
 def all_the_same(xml_line, attr1, attr2):
+    if is_the_same(get_attr_val(xml_line, attr1), get_attr_val(xml_line, attr2)):
+        return 1
+    return 0
+
+
+def is_the_same(val1, val2):
     # a difference of only capitalization is not interesting
-    if get_attr_val(xml_line, attr1).lower() == \
-            get_attr_val(xml_line, attr2).lower():
+    if val1.strip().lower() == val2.strip().lower():
         return 1
     return 0
 
@@ -358,6 +385,8 @@ def all_the_same(xml_line, attr1, attr2):
 def has_attr(xml_line, attr):
     if xml_line.find(attr) < 0:
         return 0
+    # if xml_line.find('/' + attr) < xml_line.find(attr) and xml_line.find('/' + attr) >= 0:
+    #     return 0
     return 1
 
 
@@ -369,6 +398,13 @@ def get_attr(xml_line, attr):
         q1 = tmp.find(attr + ':')
     if tmp.find(';', q1 + 1) < 0:  # delimited by semicolon or quote
         q2 = tmp.find('"', q1 + 1)
+    # else:
+    #     x = tmp.find('" ', q1 + 1)
+    #     y = tmp.find(';', q1 + 1)
+    #     if tmp.find('" ', q1 + 1) < tmp.find(';', q1 + 1) and x >= 0:
+    #         q2 = tmp.find('" ', q1 + 1)
+    #     else:
+    #         q2 = tmp.find(';', q1 + 1) + 1
     else:
         if tmp.find('" ', q1 + 1) < tmp.find(';', q1+1):
             q2 = tmp.find('" ', q1 + 1)
@@ -404,7 +440,7 @@ def deduplicate_it(my_list):  # list expected to be sorted
     i = 0
     j = len(my_list)
     while i < j - 1:
-        if my_list[i] == my_list[i + 1]:
+        if is_the_same(my_list[i], my_list[i + 1]):
             del my_list[i + 1]
             i = i - 1  # re-check in case multiple duplicates
             j = j - 1  # the list is now one item shorter
@@ -428,76 +464,102 @@ def go_back_and_clear(attr):
             return
     return
 
+def get_all_node_from_keyfile(keyfile):
+    f = open(keyfile, 'r')
+    for i in f:
+        if i.startswith('<node'):
+            key_file_list.append(get_attr_val(i, 'TEXT').lower())
+    return
 
-def keyfile(file1,file2):
-    f1 = open(file1, 'r')
-    f2 = open(file2, 'r')
-    for i in f1:
-        if i.startswith('<node') and not i.endswith('/>') and not i.endswith('/>\n'):
-            top_key_node.append(get_attr_val(i, 'TEXT'))
-            break
-    for i in f1:
-        if i.startswith('<node') and not i.endswith('/>') and not i.endswith('/>\n'):
-            if len(key_parentlist) > 0:
-                key_childlist.append(get_attr_val(i, 'TEXT'))
-                printsentence = 'the parent node is ' + key_parentlist[-1] + ' and the child node is ' + key_childlist[-1]
-                printlistforkey.append(printsentence)
-            key_parentlist.append(get_attr_val(i, 'TEXT'))
-        elif i.startswith('<node') and (i.endswith('/>') or i.endswith('/>\n')):
-            key_childlist.append(get_attr_val(i, 'TEXT'))
-            printsentence = 'the parent node is ' + key_parentlist[-1] + ' and the child node is ' + key_childlist[-1]
-            printlistforkey.append(printsentence)
-        elif i == '</node>' or i == '</node>\n':
-            if len(key_parentlist) > 0:
-                del key_parentlist[-1]
-    f1.close()
-    for i in f2:
-        if i.startswith('<node') and not i.endswith('/>') and not i.endswith('/>\n'):
-            if len(student_parentlist) > 0:
-                student_childlist.append(get_attr_val(i, 'TEXT'))
-                printsentence = 'the parent node is ' + student_parentlist[-1] + ' and the child node is ' + student_childlist[-1]
-                printlistforstudent.append(printsentence)
-            student_parentlist.append(get_attr_val(i, 'TEXT'))
-            if student_parentlist[0] != top_key_node[0]:
-                student_parentlist[0] = top_key_node[0]
-        elif i.startswith('<node') and (i.endswith('/>') or i.endswith('/>\n')):
-            student_childlist.append(get_attr_val(i, 'TEXT'))
-            printsentence = 'the parent node is ' + student_parentlist[-1] + ' and the child node is ' + student_childlist[-1]
-            printlistforstudent.append(printsentence)
-        elif i == '</node>' or i == '</node>\n':
-            if len(student_parentlist) > 0:
-                del student_parentlist[-1]
-    f2.close()
+def get_all_node_from_studentfile(studentfile):
+    f = open(studentfile, 'r')
+    for i in f:
+        if i.startswith('<node'):
+            student_file_list.append(get_attr_val(i, 'TEXT').lower())
+    double_check()
     return
 
 
-# def studentfile(file2):
-#     f = open(file2, 'r')
-#     for i in f:
-#         if i.startswith('<node') and not i.endswith('/>') and not i.endswith('/>\n'):
-#             if len(student_parentlist) > 0:
-#                 student_childlist.append(get_attr_val(i, 'TEXT'))
-#                 printsentence = 'the parent node is ' + student_parentlist[-1] + ' and the child node is ' + student_childlist[-1]
-#                 printlistforstudent.append(printsentence)
-#             student_parentlist.append(get_attr_val(i, 'TEXT'))
-#         elif i.startswith('<node') and (i.endswith('/>') or i.endswith('/>\n')):
-#             student_childlist.append(get_attr_val(i, 'TEXT'))
-#             printsentence = 'the parent node is ' + student_parentlist[-1] + ' and the child node is ' + student_childlist[-1]
-#             printlistforstudent.append(printsentence)
-#         elif i == '</node>' or i == '</node>\n':
-#             if len(student_parentlist) > 0:
-#                 del student_parentlist[-1]
-#     f.close()
-#     return
+def double_check():
+    for i in missing_list:
+        x = get_attr_val(i, 'TEXT').lower()
+        if x not in key_file_list:
+            missing_list.remove(i)
+            double_check()
+    for i in extras_list:
+        x = get_attr_val(i, 'TEXT').lower()
+        if x in key_file_list:
+            extras_list.remove(i)
+            double_check()
+    for i in moved_list:
+        x = get_attr_val(i, 'TEXT').lower()
+        if x not in key_file_list:
+            moved_list.remove(i)
+            extras_list.append(i)
+            double_check()
+        elif x in key_file_list and x not in student_file_list:
+            moved_list.remove(i)
+            missing_list.append(i)
+            double_check()
+
+    return
 
 
-def compare(printlistforkey, printlistforstudent):
-    key = sorted(printlistforkey)
-    student = sorted(printlistforstudent)
+def key_file(file1):
+    _p = 'The parent node is '
+    _c = ' and the child node is '
+    f = open(file1, 'r')
+    for i in f:
+        if i.startswith('<node') and not i.endswith('/>') and not i.endswith('/>\n'):
+            if len(key_node) == 0:
+                key_node.append(get_attr_val(i, 'TEXT'))
+            if len(parent_list) > 0:
+                child_list.append(get_attr_val(i, 'TEXT'))
+                print_sentence = _p + un_html_it(parent_list[-1]) + _c + un_html_it(child_list[-1])
+                print_list_for_key.append(print_sentence)
+            parent_list.append(get_attr_val(i, 'TEXT'))
+        elif i.startswith('<node') and (i.endswith('/>') or i.endswith('/>\n')):
+            child_list.append(get_attr_val(i, 'TEXT'))
+            print_sentence = _p + un_html_it(parent_list[-1]) + _c + un_html_it(child_list[-1])
+            print_list_for_key.append(print_sentence)
+        elif is_the_same(i, '</node>') or is_the_same(i, '</node>\n'):
+            if len(parent_list) > 0:
+                del parent_list[-1]
+    f.close()
+    return
+
+
+def student_file(file2):
+    _p = 'The parent node is '
+    _c = ' and the child node is '
+    f = open(file2, 'r')
+    for i in f:
+        if i.startswith('<node') and not i.endswith('/>') and not i.endswith('/>\n'):
+            if len(parent_list) > 0:
+                child_list.append(get_attr_val(i, 'TEXT'))
+                print_sentence = _p + un_html_it(parent_list[-1]) + _c + un_html_it(child_list[-1])
+                print_list_for_student.append(print_sentence)
+            parent_list.append(get_attr_val(i, 'TEXT'))
+            if not is_the_same(parent_list[0], key_node[0]):
+                parent_list[0] = key_node[0]  # ignore if root node values are unequal
+        elif i.startswith('<node') and (i.endswith('/>') or i.endswith('/>\n')):
+            child_list.append(get_attr_val(i, 'TEXT'))
+            print_sentence = _p + un_html_it(parent_list[-1]) + _c + un_html_it(child_list[-1])
+            print_list_for_student.append(print_sentence)
+        elif is_the_same(i, '</node>') or is_the_same(i, '</node>\n'):
+            if len(parent_list) > 0:
+                del parent_list[-1]
+    f.close()
+    return
+
+
+def compare(print_listforkey, print_listforstudent):
+    key = sorted(print_listforkey)
+    student = sorted(print_listforstudent)
 
     for i in key:
         for j in student:
-            if i == j:
+            if is_the_same(i, j):
                 same_list.append(i)
                 break
     for z in (key + student):
@@ -506,25 +568,9 @@ def compare(printlistforkey, printlistforstudent):
     return
 
 
-def find_top_node(file1,file2):
-    f1 = open(file1, 'r')
-    f2 = open(file2, 'r')
-    for i in f1:
-        if i.startswith('<node') and not i.endswith('/>') and not i.endswith('/>\n'):
-            top_key_node.append(get_attr_val(i,'TEXT'))
-            break
-    for i in f2:
-        if i.startswith('<node') and not i.endswith('/>') and not i.endswith('/>\n'):
-            top_student_node.append(get_attr_val(i,'TEXT'))
-            break
-    if top_key_node[0] != top_student_node[0]:
-        top_student_node[0] = top_key_node[0]
-    # print(top_key_node[0])
-    # print(top_student_node[0])
-
-
-
 def key_crosslink(file1):
+    _p = 'The parent node is '
+    _c = ' and the child node is '
     child_list = []
     id_list = []
     id_list_parent = []
@@ -533,7 +579,7 @@ def key_crosslink(file1):
 
     f = open(file1, 'r')
     prev = next(f).strip()
-    for i in map(str.strip,f):
+    for i in map(str.strip, f):
         if i.startswith('<node'):
             getnode.append(i)
         if i.startswith('<node') and not i.endswith('/>') and not i.endswith('/>\n'):
@@ -542,24 +588,24 @@ def key_crosslink(file1):
             # j = i[i+1]
             # j = next(i) #go to next line
         if i.startswith('<arrowlink'):
-            id_list.append(get_attr_val(i,'DESTINATION')) #find the destination ID
+            id_list.append(get_attr_val(i, 'DESTINATION'))  # find the destination ID
             child_list.append(get_attr_val(prev, 'TEXT'))
-                    # test = k.__getattribute__('ID')
-                    # getid.append(test)
     for x in id_list:
         for id in getnode:
-                    # one = (get_attr_val(x,'DESTINATION'))
-            two  = (get_attr_val(id, 'ID'))
-            if x == two:
-                id_list_parent.append(get_attr_val(id,'TEXT')) #
-                printsentence = 'parent node: ' + id_list_parent[-1] + ' child node: ' + child_list[0]
-                printlist_keycrosslink.append(printsentence)
+            # one = (get_attr_val(x,'DESTINATION'))
+            two = (get_attr_val(id, 'ID'))
+            if is_the_same(x, two):
+                id_list_parent.append(get_attr_val(id, 'TEXT'))  #
+                print_sentence = _p + un_html_it(id_list_parent[-1]) + _c + un_html_it(child_list[0])
+                print_list_key_crosslink.append(print_sentence)
                 del child_list[0]
-    # print(printlist_keycrosslink)
     f.close()
     return
 
+
 def student_crosslink(file2):
+    _p = 'The parent node is '
+    _c = ' and the child node is '
     child_list = []
     id_list = []
     id_list_parent = []
@@ -580,21 +626,22 @@ def student_crosslink(file2):
     for x in id_list:
         for id in getnode:
             two = (get_attr_val(id, 'ID'))
-            if x == two:
+            if is_the_same(x, two):
                 id_list_parent.append(get_attr_val(id, 'TEXT'))  #
-                printsentence = 'parent node: ' + id_list_parent[-1] + ' child node: ' + child_list[0]
-                printlist_studentcrosslink.append(printsentence)
+                print_sentence = _p + un_html_it(id_list_parent[-1]) + _c + un_html_it(child_list[0])
+                print_list_student_crosslink.append(print_sentence)
                 del child_list[0]
     f.close()
     return
 
-def compare_cross_link(printlist_keycrosslink, printlist_studentcrosslink):
-    key = sorted(printlist_keycrosslink)
-    student = sorted(printlist_studentcrosslink)
+
+def compare_crosslink(prt_key_crosslink, prt_student_crosslink):
+    key = sorted(prt_key_crosslink)
+    student = sorted(prt_student_crosslink)
 
     for i in key:
         for j in student:
-            if i == j:
+            if is_the_same(i, j):
                 same_list_cross.append(i)
                 break
     for z in (key + student):
@@ -603,7 +650,7 @@ def compare_cross_link(printlist_keycrosslink, printlist_studentcrosslink):
     return
 
 
-def print_it(output_path, file2):
+def print_for_node(output_path, file2):
     global return_list
     moved_list.sort()
     deduplicate_it(moved_list)
@@ -611,74 +658,87 @@ def print_it(output_path, file2):
     deduplicate_it(extras_list)
     missing_list.sort()
     deduplicate_it(missing_list)
-    if output_path == '':
-        print('Missing:' + '\n')
+    _s = 'Student file name: ' + file2 + '\n'
+    _k = 'Top node: ' + key_node[0] + '\n'
+    _m = 'Missing nodes: ' + '(Count: ' + str(len(missing_list)) + ')' + '\n'
+    _e = 'Extra nodes: ' + '(Count: ' + str(len(extras_list)) + ')' + '\n'
+    _v = 'Moved nodes: ' + '(Count: ' + str(len(moved_list)) + ')' + '\n'
+    if is_the_same(output_path, ''):
+        print(_s)
+        print(_k)
+        print(_m)
         print('\n'.join(missing_list))
-        print('\n' + 'Extras:' + '\n')
+        print('\n' + _e)
         print('\n'.join(extras_list))
-        print('\n' + 'Moved:' + '\n')
+        print('\n' + _v)
         print('\n'.join(moved_list))
-    elif output_path == 'for_download':
-        return_list.append('\n')
-        return_list.append('student file name: ' + file2 +'\n')
-        return_list.append('TOP Node is ' + top_key_node[0])
-        return_list.append('Missing Nodes: ' + '(Count:' + str(len(missing_list)) + ')')
+    elif is_the_same(output_path, 'for_download'):
+        # return_list.append('\n')
+        return_list.append(_s)
+        return_list.append(_k)
+        return_list.append(_m)
         for i in missing_list:
             return_list.append(i)
-        return_list.append('Extras Nodes: ' + '(Count:' + str(len(extras_list)) + ')')
+        return_list.append('\n' + _e)
         for i in extras_list:
             return_list.append(i)
-        return_list.append('Moved Nodes: ' + '(Count:' + str(len(moved_list)) + ')')
+        return_list.append('\n' + _v)
         for i in moved_list:
             return_list.append(i)
     else:
         f = open(output_path, 'w')
-        f.write('Missing:' + '\n')
+        f.write(_s)
+        f.write(_k)
+        f.write(_m)
         f.write('\n'.join(missing_list))
-        f.write('\n' + 'Extras:' + '\n')
+        f.write('\n' + _e)
         f.write('\n'.join(extras_list))
-        f.write('\n' + 'Moved:' + '\n')
+        f.write('\n' + _v)
         f.write('\n'.join(moved_list))
         f.close()
     return
 
 
-def print_it2(output_path):
+def print_for_link(output_path):
     global return_list
-    if output_path == '':
-        print('Same:' + '\n')
+    _sl = 'Same link: ' + '(Count: ' + str(len(same_list)) + ')' + '\n'
+    _dl = 'Different link: ' + '(Count: ' + str(len(difference_list)) + ')' + '\n'
+    _sx = 'Same cross link: ' + '(Count: ' + str(len(same_list_cross)) + ')' + '\n'
+    _dx = 'Different cross link: ' + '(Count: ' + str(len(difference_list_cross)) + ')' + '\n'
+    if is_the_same(output_path, ''):
+        print('\n' + _sl)
         print('\n'.join(same_list))
-        print('\n' + 'Different:' + '\n')
+        print('\n' + _dl)
         print('\n'.join(difference_list))
-    elif output_path == 'for_download':
-        # x = set(same_list)
-        return_list.append('Same Link: ' + '(Count:' + str(len(same_list)) + ')')
+        print('\n' + _sx)
+        print('\n'.join(same_list_cross))
+        print('\n' + _dx)
+        print('\n'.join(difference_list_cross))
+    elif is_the_same(output_path, 'for_download'):
+        return_list.append('\n' + _sl)
         for i in same_list:
             return_list.append(i)
-        # x = set(difference_list)
-        return_list.append('Different Link: ' + '(Count:' + str(len(difference_list)) + ')')
+        return_list.append('\n' + _dl)
         for i in difference_list:
             return_list.append(i)
-        # x = set(same_list_cross)
-        return_list.append('Same Cross Link: ' + '(Count:' + str(len(same_list_cross)) + ')')
+        return_list.append('\n' + _sx)
         for i in same_list_cross:
             return_list.append(i)
-        # x = set(difference_list_cross)
-        return_list.append('Different Cross Link: ' + '(Count:' + str(len(difference_list_cross)) + ')')
+        return_list.append('\n' + _dx)
         for i in difference_list_cross:
             return_list.append(i)
-
     else:
         f = open(output_path, 'w')
-        f.write('Same:' + '\n')
+        f.write('\n' + _sl)
         f.write('\n'.join(same_list))
-        f.write('\n' + 'Different:' + '\n')
+        f.write('\n' + _dl)
         f.write('\n'.join(difference_list))
+        f.write('\n' + _sx)
+        f.write('\n'.join(same_list_cross))
+        f.write('\n' + _dx)
+        f.write('\n'.join(difference_list_cross))
         f.close()
     return
 
+# run_it()  # comment out if compiling for online
 
-#run_it()  # comment out if compiling for online
-
-
-#

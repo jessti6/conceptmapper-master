@@ -1,9 +1,6 @@
 import os
 
-# from django.core.files import File
-from flask import flash, request, redirect, render_template, make_response, send_from_directory
-# from pip._vendor import requests
-from werkzeug.utils import secure_filename
+from flask import flash, request, redirect, render_template
 
 import mm_comparator
 from app import app
@@ -12,9 +9,7 @@ from lib.flask import Response
 Extensions = 'mm'
 Allowed_extensions = set([Extensions])
 
-
-
-diffs = ""
+diffs = ''
 file_name = ''
 # out_directory = os.path.expanduser('~').replace('\\', '\\\\')
 
@@ -67,64 +62,56 @@ def upload_file():
 
         # good to go, run the comparison
         global diffs, file_name
-        # if key_file.filename != key_file_name_sav and key_file.filename == '':
-        #     key_file = key_file_sav
-        # else:
-        #     key_file_sav = key_file
-        #     key_file_name_sav = key_file.filename
 
         for i in student_file:
-            # student_file_name_sav = i.filename
-            # diffs = ''
-            diffs = mm_comparator.return_diffs(key_file, key_file.filename, i, i.filename)
-            file_name = mm_comparator.set_output_path(key_file.filename,i.filename)
-        return redirect('/out')
+            # diffs = mm_comparator.return_diffs(key_file, key_file.filename, i, i.filename)
+            diffs = mm_comparator.return_diffs(key_file.filename, i.filename)
+            file_name = mm_comparator.set_output_path(key_file.filename, i.filename, 'node_and_links')
 
+        return redirect('/out')
 
 
 @app.route("/out")
 def get():
     # global q_repeated
     # q_repeated = True
-    mm_comparator.clear2()
+    mm_comparator.clear_all_vars()
     return render_template('download.html')
 
 
-@app.route("/getDownload")
-def getDownload():
-    global diffs
+@app.route("/get_download")
+def get_download():
+    global diffs, file_name
+
     with open(file_name, 'w') as f:
         empty = os.stat(file_name).st_size == 0
         if empty:
-            # print(diffs)
+            print(diffs)
             for i in diffs:
                 f.write(i)
                 f.write('\n')
-            f.close()
             del diffs
+            f.close()
         else:
+            f.close()
             file_name.seek(0)
             file_name.truncate()
-            with open(file_name, 'w') as f:
+            with open(file_name, 'w') as g:
                 for i in diffs:
-                    f.write(i)
-                    f.write('\n')
-            f.close()
-    # f.close()
+                    g.write(i)
+                    g.write('\n')
+            g.close()
 
-    with open(file_name, 'r') as f1:
-        diff = f1.read()
-        f1.close()
-    return Response(
-        diff,
-        mimetype="text",
-        headers={"Content-disposition":
-                     "attachment; filename=diff.txt"})
-
-
+    with open(file_name, 'r') as h:
+        diff = h.read()
+        h.close()
+        return Response(
+            diff,
+            mimetype="text",
+            headers={"Content-disposition": "attachment; filename=diff.txt"})
 
 
 if __name__ == "__main__":
-    app.debug = True
+    # app.debug = True
     app.run(host='0.0.0.0', port=8080)
-    #app.run()
+    # app.run()
