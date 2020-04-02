@@ -105,9 +105,7 @@ def set_in_motion_find_diffs(file1name, file2name):
 
 
     for i in diff.splitlines():
-        # if i.find('Etiology') > 0:
-        #     x =1
-        if re.search(r'\bdiff:\w+', i) or i.startswith('</node'):
+        if re.search(r'\bdiff:\w+', i) or i.startswith('</node') or i.startswith('<node'):
             if not cull_line(i, 'TRUE'):
                 categorize_it(i)
     get_all_node_from_keyfile(file1name) #double check the missing and extra list
@@ -115,6 +113,7 @@ def set_in_motion_find_diffs(file1name, file2name):
     key_file(file1name)
     student_file(file2name)
     compare(print_list_for_key, print_list_for_student)
+    double_check_moved() # double check the moved node using key and student links
     key_crosslink(file1name)
     student_crosslink(file2name)
     compare_crosslink(print_list_key_crosslink, print_list_student_crosslink)
@@ -152,7 +151,6 @@ def cull_line(xml_line, am_finding_diffs):
             return 1
         if has_attr(xml_line, 'COLOR') or has_attr(xml_line, 'AutomaticEdgeColor'):
             return 1
-        # try delete position
         # if has_attr(xml_line, 'POSITION'):
         #     return 1
         if has_attr(xml_line, 'HGAP_QUANTITY'):
@@ -486,6 +484,9 @@ def double_check():
         if x not in key_file_list:
             missing_list.remove(i)
             double_check()
+        if x in key_file_list and x in student_file_list:
+            missing_list.remove(i)
+            double_check()
     for i in extras_list:
         x = get_attr_val(i, 'TEXT').lower()
         if x in key_file_list:
@@ -501,7 +502,6 @@ def double_check():
             moved_list.remove(i)
             missing_list.append(i)
             double_check()
-
     return
 
 
@@ -647,6 +647,18 @@ def compare_crosslink(prt_key_crosslink, prt_student_crosslink):
     for z in (key + student):
         if z not in same_list_cross:
             difference_list_cross.append(z)
+    return
+
+
+def double_check_moved():
+    for i in moved_list:
+        for j in print_list_for_key:
+            x = j.find(i)
+        for z in print_list_for_student:
+            y = z.find(i)
+        if x == y:
+            moved_list.remove(i)
+            double_check_moved()
     return
 
 
