@@ -652,10 +652,17 @@ def compare_crosslink(prt_key_crosslink, prt_student_crosslink):
 
 def double_check_moved():
     for i in moved_list:
+        l = get_attr_val(i, 'TEXT').lower()
         for j in print_list_for_key:
-            x = j.find(i)
+            x = j.lower()
+            x = x.find(l)
+            if x > 0:
+                break
         for z in print_list_for_student:
-            y = z.find(i)
+            y = z.lower()
+            y = y.find(l)
+            if y > 0:
+                break
         if x == y:
             moved_list.remove(i)
             double_check_moved()
